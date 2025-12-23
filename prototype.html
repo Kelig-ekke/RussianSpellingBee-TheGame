@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Spelling Bee</h1>
+    <div style="display: flex; gap: 10px; margin: 20px;">
+        <div style="width:50px;height:50px;background:green;border-radius:50%;text-align:center;line-height:50px;font-size:24px;color:white;">А</div>
+        <div style="width:50px;height:50px;background:gold;border-radius:50%;text-align:center;line-height:50px;font-size:24px;" onclick="addLetter('Б')">Б</div>
+        <div style="width:50px;height:50px;background:gold;border-radius:50%;text-align:center;line-height:50px;font-size:24px;" onclick="addLetter('В')">В</div>
+        <div style="width:50px;height:50px;background:gold;border-radius:50%;text-align:center;line-height:50px;font-size:24px;" onclick="addLetter('Г')">Г</div>
+    </div>
+    
+    <div id="word" style="font-size: 32px; margin: 20px; min-height: 40px;"></div>
+    
+    <button onclick="checkWord()">Проверить</button>
+    <button onclick="clearWord()">Очистить</button>
+    
+    <script>
+        let currentWord = '';
+        function addLetter(letter) {
+            currentWord += letter.toLowerCase();
+            document.getElementById('word').textContent = currentWord.toUpperCase();
+        }
+        function clearWord() {
+            currentWord = '';
+            document.getElementById('word').textContent = '';
+        }
+        function checkWord() {
+            alert('Вы ввели: ' + currentWord.toUpperCase());
+            clearWord();
+        }
+    </script>
+</body>
+</html>

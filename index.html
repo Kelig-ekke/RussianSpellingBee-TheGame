@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Spelling Bee по-русски</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #fafafa; }
+        .hive { display: flex; justify-content: center; flex-wrap: wrap; max-width: 300px; margin: 20px auto; }
+        .letter { 
+            display: inline-block; 
+            width: 60px; height: 60px; 
+            line-height: 60px; 
+            margin: 5px; 
+            background: #eee; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-weight: bold;
+            font-size: 20px;
+            transition: transform 0.1s;
+        }
+        .letter:active { transform: scale(0.9); }
+        .letter.main { background: gold; }
+        
+        #currentWord { 
+            font-size: 32px; 
+            height: 40px; 
+            margin: 20px; 
+            font-weight: bold; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; cursor: pointer; border-radius: 20px; border: 1px solid #ccc; background: white; }
+        #foundWords { margin-top: 20px; color: #666; }
+        #message { height: 20px; color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Spelling Bee</h1>
+    
+    <div id="currentWord"></div>
+    <div id="message"></div>
+
+    <div id="hive" class="hive"></div>
+
+    <div class="controls">
+        <button onclick="deleteLetter()">Удалить</button>
+        <button onclick="submitWord()" style="background: gold; border: none; font-weight: bold;">Проверить</button>
+    </div>
+
+    <div id="foundWords">Найденные слова: 0</div>
+    
+    <script src="game.js"></script>
+    <script src="dictionary.js"></script>
+</body>
+</html>
