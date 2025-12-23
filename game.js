@@ -3,65 +3,92 @@ let gameSet = { center: '', others: [] };
 let currentWord = '';
 let foundWords = [];
 
-// 1. Главная функция запуска
+// 1. Инициализация
 async function init() {
     await loadAndCleanDictionary();
-    const level = generateLevel();
-    
+    // По умолчанию загружаем слово дня
+    loadLevelByDate(new Date());
+}
+
+// Загрузка уровня на основе конкретной даты
+function loadLevelByDate(date) {
+    // Создаем уникальное число из даты (ГГГГММДД)
+    const seed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+    setupLevel(seed);
+}
+
+// Функция для кнопки "Сгенерировать новое"
+function refreshLevel() {
+    if (!confirm("Весь прогресс текущего уровня будет потерян. Продолжить?")) return;
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    setupLevel(randomSeed);
+}
+
+// Общая логика настройки уровня
+function setupLevel(seed) {
+    const level = generateLevel(seed);
     gameSet.center = level.center;
     gameSet.others = level.others;
+    foundWords = []; // Сброс найденных слов
+    currentWord = '';
     
+    document.getElementById('currentWord').textContent = '';
+    updateFoundList();
     createHive();
+    showMessage("Уровень загружен!", true);
 }
 
-// 2. Загрузка и очистка словаря
-async function loadAndCleanDictionary() {
-    try {
-        const response = await fetch('dictionary.json');
-        const data = await response.json();
-
-        dictionary = Object.keys(data)
-            .map(word => word.toLowerCase())
-            .filter(word => {
-                const isLongEnough = word.length >= 4;
-                const onlyLetters = /^[а-яё]+$/.test(word);
-                return isLongEnough && onlyLetters;
-            });
-
-        console.log("Словарь готов! Слов:", dictionary.length);
-    } catch (e) {
-        console.error("Ошибка загрузки. Проверьте, что файл dictionary.json лежит рядом с index.html", e);
-    }
-}
-
-// 3. Генерация уровня на основе панграммы
-function generateLevel() {
+// 3. Генерация уровня с использованием Seed
+function generateLevel(seed) {
     const pangrams = dictionary.filter(word => {
         const uniqueLetters = new Set(word.split(''));
         return uniqueLetters.size === 7;
     });
 
     if (pangrams.length === 0) {
-        return { center: 'д', others: ['а', 'к', 'о', 'р', 'л', 'п'] }; // Запасной вариант
+        return { center: 'д', others: ['а', 'к', 'о', 'р', 'л', 'п'] };
     }
 
-    const randomPangram = pangrams[Math.floor(Math.random() * pangrams.length)];
+    // Используем seed для выбора одного и того же слова в течение дня
+    const index = seed % pangrams.length;
+    const randomPangram = pangrams[index];
+    
     const uniqueLetters = Array.from(new Set(randomPangram.split('')));
     
-    uniqueLetters.sort(() => Math.random() - 0.5);
+    // Детерминированное перемешивание на основе сида
+    // (чтобы у всех игроков буквы стояли одинаково)
+    const shuffled = uniqueLetters.sort((a, b) => {
+        const hashA = (a.charCodeAt(0) * seed) % 100;
+        const hashB = (b.charCodeAt(0) * seed) % 100;
+        return hashA - hashB;
+    });
 
     return {
-        center: uniqueLetters[0],
-        others: uniqueLetters.slice(1)
+        center: shuffled[0],
+        others: shuffled.slice(1)
     };
 }
 
-// 4. Отрисовка интерфейса
+// --- Остальные функции (loadAndCleanDictionary, createHive, submitWord и т.д.) остаются прежними ---
+
+async function loadAndCleanDictionary() {
+    try {
+        const response = await fetch('dictionary.json');
+        const data = await response.json();
+        dictionary = Object.keys(data)
+            .map(word => word.trim().toLowerCase())
+            .filter(word => word.length >= 4 && /^[а-яё]+$/.test(word));
+        dictionary = Array.from(new Set(dictionary));
+        console.log("Словарь готов!");
+    } catch (e) {
+        console.error("Ошибка словаря:", e);
+    }
+}
+
 function createHive() {
     const hive = document.getElementById('hive');
     if (!hive) return;
     hive.innerHTML = '';
-    
     const allLetters = [gameSet.center, ...gameSet.others];
     
     allLetters.forEach((letter, index) => {
@@ -72,8 +99,6 @@ function createHive() {
         hive.appendChild(div);
     });
 }
-
-// --- Логика игры ---
 
 function addLetter(letter) {
     currentWord += letter;
@@ -86,30 +111,22 @@ function deleteLetter() {
 }
 
 function submitWord() {
-    const word = currentWord.toLowerCase();
-    
-    if (word.length < 4) {
-        showMessage('Минимум 4 буквы!');
-        return;
-    }
-    if (!word.includes(gameSet.center)) {
-        showMessage(`Нужна буква ${gameSet.center.toUpperCase()}!`);
-        return;
-    }
-    if (!dictionary.includes(word)) {
-        showMessage('Нет в словаре!');
-        return;
-    }
+    const word = currentWord.toLowerCase().trim();
+    if (word.length < 4) return showMessage('Минимум 4 буквы!');
+    if (!word.includes(gameSet.center)) return showMessage(`Нужна буква ${gameSet.center.toUpperCase()}!`);
+    if (!dictionary.includes(word)) return showMessage('Нет в словаре!');
     if (foundWords.includes(word)) {
-        showMessage('Уже было!');
-        return;
+        currentWord = '';
+        document.getElementById('currentWord').textContent = '';
+        return showMessage('Уже было!');
     }
 
+    let isPangram = new Set(word.split('')).size === 7;
     foundWords.push(word);
     currentWord = '';
     document.getElementById('currentWord').textContent = '';
     updateFoundList();
-    showMessage('Отлично!', true);
+    showMessage(isPangram ? 'ПАНГРАММА!' : 'Отлично!', true);
 }
 
 function updateFoundList() {
@@ -126,5 +143,4 @@ function showMessage(text, success = false) {
     setTimeout(() => { m.textContent = ''; }, 2000);
 }
 
-// Единая точка входа
 window.onload = init;

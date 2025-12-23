@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Spelling Bee по-русски</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #fafafa; }
+        body { font-family: 'Montserrat', sans-serif; text-align: center; background-color: #fafafa; }
         .hive { display: flex; justify-content: center; flex-wrap: wrap; max-width: 300px; margin: 20px auto; }
         .letter { 
             display: inline-block; 
@@ -30,13 +30,13 @@
             text-transform: uppercase;
         }
         .controls { margin-top: 20px; }
-        button { padding: 10px 20px; cursor: pointer; border-radius: 20px; border: 1px solid #ccc; background: white; }
+        button { font-family: 'Montserrat', sans-serif; padding: 10px 20px; cursor: pointer; border-radius: 20px; border: 1px solid #ccc; background: white; }
         #foundWords { margin-top: 20px; color: #666; }
         #message { height: 20px; color: red; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>Spelling Bee</h1>
+    <h1>Спеллинг Бии</h1>
     
     <div id="currentWord"></div>
     <div id="message"></div>
@@ -49,6 +49,8 @@
     </div>
 
     <div id="foundWords">Найденные слова: 0</div>
+
+    <div><button onclick="refreshLevel()" style="margin-top: 40px;">Сгенерировать новый список букв</button></div>
     
     <script src="game.js"></script>
     <script src="dictionary.js"></script>
