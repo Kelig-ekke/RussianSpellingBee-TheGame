@@ -51,17 +51,31 @@ function generateLevel(seed) {
 
     // Используем seed для выбора одного и того же слова в течение дня
     const index = seed % pangrams.length;
-    const randomPangram = pangrams[index];
+    let randomPangram = pangrams[index];
+
+    randomPangram = randomPangram.replace(/ё/g, 'е');
     
     const uniqueLetters = Array.from(new Set(randomPangram.split('')));
     
     // Детерминированное перемешивание на основе сида
     // (чтобы у всех игроков буквы стояли одинаково)
-    const shuffled = uniqueLetters.sort((a, b) => {
+    let shuffled = uniqueLetters.sort((a, b) => {
         const hashA = (a.charCodeAt(0) * seed) % 100;
         const hashB = (b.charCodeAt(0) * seed) % 100;
         return hashA - hashB;
     });
+
+    const notCenters = ['ь', 'ъ', 'ы', 'ш', 'щ', 'й', 'ф', 'ц'];
+
+    if (notCenters.includes(shuffled[0])) {
+        const validIndex = shuffled.findIndex(char => !notCenters.includes(char));
+        
+        if (validIndex !== -1) {
+            const temp = shuffled[0];
+            shuffled[0] = shuffled[validIndex];
+            shuffled[validIndex] = temp;
+        }
+    }
 
     return {
         center: shuffled[0],
@@ -69,15 +83,17 @@ function generateLevel(seed) {
     };
 }
 
-// --- Остальные функции (loadAndCleanDictionary, createHive, submitWord и т.д.) остаются прежними ---
 
 async function loadAndCleanDictionary() {
     try {
         const response = await fetch('dictionary.json');
         const data = await response.json();
+
         dictionary = Object.keys(data)
             .map(word => word.trim().toLowerCase())
-            .filter(word => word.length >= 4 && /^[а-яё]+$/.test(word));
+            .filter(word => word.length >= 4 && /^[а-яё]+$/.test(word))
+            .map(word => word.replace(/ё/g, 'e'));
+
         dictionary = Array.from(new Set(dictionary));
         console.log("Словарь готов!");
     } catch (e) {
@@ -111,7 +127,7 @@ function deleteLetter() {
 }
 
 function submitWord() {
-    const word = currentWord.toLowerCase().trim();
+    const word = currentWord.toLowerCase().trim().replace(/ё/g, 'е');
     if (word.length < 4) return showMessage('Минимум 4 буквы!');
     if (!word.includes(gameSet.center)) return showMessage(`Нужна буква ${gameSet.center.toUpperCase()}!`);
     if (!dictionary.includes(word)) return showMessage('Нет в словаре!');
